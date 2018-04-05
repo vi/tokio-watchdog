@@ -115,6 +115,7 @@ impl Rearm {
     }
     
     pub fn rearm_with_duration(self, dur: Duration) -> Watchdog {
+        // TODO
         Watchdog(self.0)
     }
 }
