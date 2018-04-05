@@ -11,24 +11,26 @@ use futures::Async;
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use std::time::{Duration, Instant};
 
-
-// Or Rc<RefCell<>>, selected by cargo features?
-type H = Arc<Mutex<Option<Delay>>>;
-
-pub struct Watchdog {
-    del : H,
+struct Impl {
+    del : Option<Delay>,
     dur : Duration,
 }
 
+type H = Arc<Mutex<Impl>>;
+//type H = Rc<RefCell<Option<Delay>>>;
+
+pub struct Watchdog(H);
+
 impl Watchdog {
     fn new(dur: Duration) -> Self {
-        let d = Delay::new(Instant::now() + dur);
-        Watchdog {
-            del: Arc::new(Mutex::new(Some(d))),
-            dur: dur,
-        }
+        let del = Delay::new(Instant::now() + dur);
+        let i = Impl { del:Some(del), dur };
+        Watchdog(Arc::new(Mutex::new(i)))
     }
     fn handle(&self) -> Pet {
         self.into()
@@ -36,24 +38,21 @@ impl Watchdog {
 }
 
 /// Reset/restart the watchdog, so it don't activate
-pub struct Pet {
-    del : H,
-}
+pub struct Pet(H);
 impl Pet {
     /// Reset/restart the watchdog, so it don't activate
     pub fn pet(&self) {
-        let mut g = self.del.lock().unwrap();
-        if let Some(ref mut x) = *g {
-            x.reset(Instant::now() /* + ?  XXX */);
+        let mut g = self.0.lock().unwrap(); // XXX
+        let d = g.dur;
+        if let Some(ref mut x) = g.del {
+            x.reset(Instant::now() + d);
         }
     }
 }
 
 impl<'a> From<&'a Watchdog> for Pet {
     fn from(w : &'a Watchdog) -> Pet {
-        Pet {
-            del: w.del.clone(),
-        }
+        Pet(w.0.clone())
     }
 }
 
@@ -72,12 +71,15 @@ impl Future for Watchdog {
     type Error = tokio_timer::Error;
     
     fn poll(&mut self) -> futures::Poll<Rewind, tokio_timer::Error> {
-        let mut g = self.del.lock().unwrap();
-        match g.poll() {
-            Ok(Async::Ready(Some(()))) => Ok(Async::Ready(unimplemented!())),
-            Ok(Async::Ready(None)) => Ok(Async::Ready(unimplemented!())),
-            Ok(Async::NotReady) => Ok(Async::NotReady),
-            Err(x) => Err(x),
+        let mut g = self.0.lock().unwrap();
+        if let Some(ref mut d) = g.del {
+            match d.poll() {
+                Ok(Async::Ready(())) => Ok(Async::Ready(unimplemented!())),
+                Ok(Async::NotReady) => Ok(Async::NotReady),
+                Err(x) => Err(x),
+            }
+        } else {
+            unimplemented!()
         }
     }
 }
