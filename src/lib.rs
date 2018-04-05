@@ -62,6 +62,7 @@ impl Watchdog {
 }
 
 /// Reset/restart the watchdog, so it don't activate
+#[derive(Clone)]
 pub struct Pet(H);
 impl Pet {
     /// Reset/restart the watchdog, so it don't activate
