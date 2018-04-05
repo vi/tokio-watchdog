@@ -6,3 +6,6 @@ authors = ["Vitaly _Vi Shukela <vi0oss@gmail.com>"]
 [dependencies]
 tokio-timer = "0.2"
 futures = "0.1"
+
+[dev-dependencies]
+tokio = "0.1"
