@@ -5,6 +5,7 @@ authors = ["Vitaly _Vi Shukela <vi0oss@gmail.com>"]
 description = "Watchdog timer for Tokio."
 readme = "README.md"
 license = "MIT/Apache-2.0"
+repository = "https://github.com/vi/tokio-watchdog"
 
 [dependencies]
 tokio-timer = "0.2"
