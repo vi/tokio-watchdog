@@ -1,4 +1,9 @@
-#![allow(dead_code,unused)]
+#![deny(missing_docs)]
+
+//! Docs are on the way. API is unstable, submit your ideas though Github issues.
+//! Otherwise see README for API excerpt and example.
+//!
+//! Main struct is `Watchdog`.
 
 extern crate tokio_timer;
 extern crate futures;
@@ -10,9 +15,6 @@ use futures::Async;
 
 use std::sync::Arc;
 use std::sync::Mutex;
-
-use std::rc::Rc;
-use std::cell::RefCell;
 
 use std::time::{Duration, Instant};
 
@@ -28,9 +30,13 @@ struct Impl {
 type H = Arc<Mutex<Impl>>;
 //type H = Rc<RefCell<Impl>>>;
 
+/// The main struct. A wrapper over `tokio_timer::Delay` that has handles that can `reset` it periodically.
+///
+/// TODO: example
 pub struct Watchdog(H);
 
 impl Watchdog {
+    /// constructor
     pub fn new(dur: Duration) -> Self {
         let ins = Instant::now() + dur;
         let del = Delay::new(ins);
@@ -39,7 +45,7 @@ impl Watchdog {
     }
     /// Get the duration. Returns 0 on internal error.
     pub fn duration(&self) -> Duration {
-        if let Ok(mut g) = self.0.lock() {
+        if let Ok(g) = self.0.lock() {
             g.dur
         } else {
             Duration::from_secs(0)
@@ -56,6 +62,7 @@ impl Watchdog {
             }
         }
     }
+    /// Get the handle for keeping the watchdog from firing
     pub fn handle(&self) -> Pet {
         self.into()
     }
@@ -108,13 +115,16 @@ impl<'a> From<&'a Watchdog> for Pet {
 }
 
 /// Result returned from a fired Watchdog.
+///
 /// Can be used to rewind (activate again) watchdog, preserving `Pet` handles pointing to it.
 pub struct Rearm(H);
 impl Rearm {
+    /// Rearm with previously used timeout value
     pub fn rearm(self) -> Watchdog {
         Watchdog(self.0)
     }
     
+    /// Rearm with new timeout value.
     pub fn rearm_with_duration(self, dur: Duration) -> Watchdog {
         let mut w = Watchdog(self.0);
         w.set_duration(dur);
