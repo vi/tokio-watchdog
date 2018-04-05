@@ -5,7 +5,7 @@ Licence = Apache2.0/MIT, like in Rust.
 # API excerpt
 
 ```rust
-pub struct Watchdog(H);
+pub struct Watchdog(_);
 impl Watchdog {
     pub fn new(dur: Duration) -> Self;
     pub fn duration(&self) -> Duration;
@@ -18,13 +18,13 @@ impl Future for Watchdog {
     type Error = tokio_timer::Error;
 }
 
-pub struct Pet(H);
+pub struct Pet(_);
 impl Pet {
     pub fn pet(&self);
     pub fn get_remaining_time(&self) -> Option<Duration>;
 }
 
-pub struct Rearm(H);
+pub struct Rearm(_);
 impl Rearm {
     pub fn rearm(self) -> Watchdog;
     pub fn rearm_with_duration(self, dur: Duration) -> Watchdog;
