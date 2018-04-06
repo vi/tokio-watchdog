@@ -68,7 +68,9 @@ impl Watchdog {
     }
 }
 
-/// Reset/restart the watchdog, so it don't activate
+/// A handle that allows to pacify the watchdog.
+///
+/// It is not called `Handle` because of it would be too generic.
 #[derive(Clone)]
 pub struct Pet(H);
 impl Pet {
